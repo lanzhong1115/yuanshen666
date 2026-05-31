@@ -1,0 +1,309 @@
+/* 养基助手 - 全局样式 - 120fps优化 */
+:root {
+  --bg: #F5F6FA;
+  --card-bg: #FFFFFF;
+  --text: #333333;
+  --text-secondary: #999999;
+  --text-hint: #BBBBBB;
+  --border: #EEEEEE;
+  --up: #E53935;
+  --up-bg: rgba(229,57,53,0.08);
+  --down: #4CAF50;
+  --down-bg: rgba(76,175,80,0.08);
+  --accent: #E53935;
+  --accent-light: rgba(229,57,53,0.1);
+  --blue: #1A73E8;
+  --warning: #FF9800;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* 120fps: GPU加速 + 合成层优化 */
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+* {
+  margin: 0; padding: 0; box-sizing: border-box;
+  /* 强制所有动画走GPU合成层 */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+body {
+  margin: 0; background: var(--bg); overflow-x: hidden;
+  /* 启用硬件加速滚动 */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 所有页面内容默认 content-visibility 优化 */
+.card, .fd-card, .asset-hero, .index-chip, .sector-chip {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* 过渡动画只使用GPU属性(opacity+transform) */
+.fade-enter-active, .fade-leave-active,
+.page-enter-active, .page-leave-active {
+  transition: opacity 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+.fade-enter-from, .fade-leave-to,
+.page-enter-from, .page-leave-to {
+  opacity: 0;
+}
+
+/* 卡片 */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin: 12px 16px;
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.card-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* 涨跌色 */
+.up { color: var(--up); }
+.down { color: var(--down); }
+.up-bg { background: var(--up-bg); }
+.down-bg { background: var(--down-bg); }
+
+/* 数字格式化 */
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  letter-spacing: -0.5px;
+}
+
+.amount-lg {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.amount-md {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.amount-sm {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 按钮 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* 标签 */
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tag-up {
+  background: var(--up-bg);
+  color: var(--up);
+}
+
+.tag-down {
+  background: var(--down-bg);
+  color: var(--down);
+}
+
+/* 加载 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+/* 弹窗 */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.2s;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px 20px;
+  animation: slideUp 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* 输入框 */
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.input-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+/* 表格 */
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.simple-table th {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding: 10px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+
+.simple-table th:first-child {
+  text-align: left;
+}
+
+.simple-table td {
+  padding: 12px 8px;
+  text-align: right;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.simple-table td:first-child {
+  text-align: left;
+}
+
+/* 响应式 */
+@media (max-width: 480px) {
+  .card {
+    margin: 8px 12px;
+    padding: 14px;
+  }
+  .amount-lg {
+    font-size: 24px;
+  }
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 2px;
+}
