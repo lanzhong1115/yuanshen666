@@ -1,10 +1,10 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import { useStandaloneStore } from '../stores/standalone'
+import { useFundStore } from '../stores/fund'
 import * as echarts from 'echarts'
 import AppIcon from '../components/AppIcon.vue'
 
-const store = useStandaloneStore()
+const store = useFundStore()
 const dailyChart = ref(null)
 const monthlyChart = ref(null)
 const pieChart = ref(null)
