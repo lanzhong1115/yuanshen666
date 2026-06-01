@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStandaloneStore } from '../stores/standalone'
+import { useFundStore } from '../stores/fund'
 import * as echarts from 'echarts'
 import { api } from '../api'
 import AppIcon from '../components/AppIcon.vue'
 
-const store = useStandaloneStore()
+const store = useFundStore()
 const router = useRouter()
 const showAdd = ref(false)
 const menuOpen = ref(null)
