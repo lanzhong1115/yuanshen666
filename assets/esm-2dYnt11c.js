@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/web-jd-_Qn5G.js","assets/dist-DWV79cgB.js"])))=>i.map(i=>d[i]);
+import{r as e}from"./index-B3WJcEJT.js";import{n as t}from"./dist-DWV79cgB.js";var n=t(`Http`,{web:()=>e(()=>import(`./web-jd-_Qn5G.js`).then(e=>new e.HttpWeb),__vite__mapDeps([0,1])),electron:()=>e(()=>import(`./web-jd-_Qn5G.js`).then(e=>new e.HttpWeb),__vite__mapDeps([0,1]))});export{n as Http};
