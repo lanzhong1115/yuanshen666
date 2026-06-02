@@ -1,7 +1,6 @@
-// APK 模式检测：Capacitor 原生环境用局域网IP，浏览器开发用 localhost
-const isNative = typeof window !== 'undefined' && !!(window.Capacitor || window.androidBridge)
-const API_HOST = isNative ? '172.28.197.79' : 'localhost'
-const BASE = 'http://' + API_HOST + ':8765/api'
+// 自动判断环境：本地开发 → localhost，线上/APK → 云服务器
+const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+const BASE = isLocal ? 'http://localhost:8765/api' : 'http://139.155.150.75:8765/api'
 async function request(url, options = {}) {
   const res = await fetch(BASE + url, { headers: { 'Content-Type': 'application/json', ...options.headers }, ...options })
   if (!res.ok) { const err = await res.json().catch(() => ({ detail: '请求失败' })); throw new Error(err.detail || 'HTTP ' + res.status) }
