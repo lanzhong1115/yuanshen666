@@ -17,17 +17,25 @@ const holdings = computed(() => store.holdings)
 const indices = computed(() => store.indices.slice(0, 4))
 const sectors = computed(() => store.sectors)
 const hasData = computed(() => store.hasHoldings)
+const valuations = ref({})
+let valTimer = null
 
 const addForm = ref({ fund_code:'',fund_name:'',fund_type:'',buy_amount:'',buy_shares:'',buy_nav:'',buy_date:'',platform:'手动录入' })
 const searchResults = ref([])
 const searching = ref(false)
 
+async function refreshValuations() {
+  const codes = store.holdings.map(h => h.fund_code).filter(Boolean)
+  if (!codes.length) return
+  try { const r = await api.getBatchValuations(codes); valuations.value = r.valuations || {} } catch {}
+}
 // Init
 onMounted(async () => {
   if (!store.lastSync) await store.sync()
   initTrendChart()
+  refreshValuations(); valTimer = setInterval(refreshValuations, 30000)
 })
-watch(() => store.version, () => initTrendChart())
+watch(() => store.version, () => { initTrendChart(); refreshValuations() })
 
 // 顶部收益图
 function initTrendChart() {
@@ -109,7 +117,10 @@ async function submitTrade() { const f = tradeForm.value; await api.addTrade(f.h
           </div>
           <div class="h-right">
             <div class="h-val">{{ (h.current_value||0).toLocaleString('zh-CN',{minimumFractionDigits:2}) }}</div>
-            <div class="h-daily" :class="(h.daily_return||0)>=0?'up':'down'">{{ h.nav_date?h.nav_date.slice(5):'' }} {{ (h.daily_return||0)>=0?'+':'' }}{{ (h.daily_return||0).toFixed(2) }}%</div>
+            <div class="h-daily" :class="(valuations[h.fund_code]?.gszzl||h.daily_return||0)>=0?'up':'down'">
+              {{ valuations[h.fund_code]?.gszzl!=null ? '实时' : (h.nav_date?h.nav_date.slice(5):'') }}
+              {{ (valuations[h.fund_code]?.gszzl||h.daily_return||0)>=0?'+':'' }}{{ (valuations[h.fund_code]?.gszzl||h.daily_return||0).toFixed(2) }}%
+            </div>
           </div>
           <div class="h-menu-wrap">
             <button class="h-menu-btn" @click.stop="menuOpen=menuOpen===h.id?null:h.id">···</button>

@@ -13,6 +13,8 @@ export const api = {
   getFundNav: (code, days = 90) => request('/funds/' + code + '/nav?days=' + days),
   getFundEstimate: (code) => request('/funds/' + code + '/estimate'),
   getFundDetail: (code, e = false, d = 365) => request('/funds/' + code + '/detail?include_estimate=' + e + '&days=' + d),
+  getFundValuation: (code) => request('/funds/' + code + '/valuation'),
+  getBatchValuations: (codes) => request('/funds/valuations', { method: 'POST', body: JSON.stringify(codes) }),
   getIndices: () => request('/market/indices'), getSectors: () => request('/market/sectors'),
   syncAll: () => request('/sync/all'),
   getDiagnosis: () => request('/analysis/portfolio/diagnosis'), getAllocation: () => request('/analysis/portfolio/allocation'),

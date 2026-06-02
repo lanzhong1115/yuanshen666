@@ -12,7 +12,8 @@ const isUp=v=>v>=0
 const c1=ref(null);const c2=ref(null)
 const period=ref(30)
 const periods=[{label:'一周',days:7},{label:'15天',days:15},{label:'30天',days:30},{label:'半年',days:180},{label:'一年',days:365}]
-let navData=[],profitData=[],touchIdx=-1,tradeMarks=[]
+const valuation=ref(null)
+let navData=[],profitData=[],touchIdx=-1,tradeMarks=[],valTimer=null
 
 async function drawBoth(){
  if(!c1.value||!c2.value)return
@@ -99,7 +100,15 @@ function handleTouch(e,data){
 let dt=null
 function switchPeriod(p){period.value=p;clearTimeout(dt);dt=setTimeout(()=>requestAnimationFrame(drawBoth),50)}
 
-onMounted(()=>{setTimeout(drawBoth,80);loadTrades().then(()=>drawBoth())})
+async function refreshValuation(){
+ if(!myHold.value)return
+ try{valuation.value=await api.getFundValuation(myHold.value.fund_code)}catch(e){}
+}
+
+onMounted(()=>{
+ setTimeout(drawBoth,80);loadTrades().then(()=>drawBoth())
+ refreshValuation();valTimer=setInterval(refreshValuation,30000)
+})
 function goBack(){router.push('/')}
 </script>
 
@@ -115,6 +124,23 @@ function goBack(){router.push('/')}
     <div class="fd-my-s"><span class="fd-my-sl">收益率</span><span class="fd-my-sv" :class="isUp(myHold.profit_pct||0)?'up':'down'">{{isUp(myHold.profit_pct||0)?'+':''}}{{(myHold.profit_pct||0).toFixed(2)}}%</span></div>
    </div>
    <div class="fd-my-meta"><span>投入{{(myHold.buy_amount||0).toLocaleString()}}元</span><span>份额{{myHold.buy_shares||'-'}}</span><span>买入{{myHold.buy_date||'-'}}</span></div>
+  </div>
+  <div class="fd-card" v-if="valuation">
+   <div class="fd-sec-title">实时估值 <span style="font-weight:400;font-size:11px;color:#bbb">{{valuation.gztime}}</span></div>
+   <div class="fd-val-row">
+    <div class="fd-val-item">
+     <span class="fd-val-label">估算净值</span>
+     <span class="fd-val-num">{{valuation.gsz?.toFixed(4)}}</span>
+    </div>
+    <div class="fd-val-item">
+     <span class="fd-val-label">估算涨跌</span>
+     <span class="fd-val-num" :class="isUp(valuation.gszzl||0)?'up':'down'">{{isUp(valuation.gszzl||0)?'+':''}}{{(valuation.gszzl||0).toFixed(2)}}%</span>
+    </div>
+    <div class="fd-val-item">
+     <span class="fd-val-label">最新净值</span>
+     <span class="fd-val-num" style="color:#999">{{valuation.dwjz?.toFixed(4)}}<i style="font-size:10px;font-style:normal;margin-left:4px">{{valuation.jzrq}}</i></span>
+    </div>
+   </div>
   </div>
   <div class="fd-card">
    <div class="fd-sec-title">净值走势</div>
@@ -138,6 +164,10 @@ function goBack(){router.push('/')}
 .fd-my-stats{display:flex;justify-content:space-around;margin-bottom:10px}.fd-my-s{text-align:center}
 .fd-my-sl{font-size:11px;color:#999;display:block}.fd-my-sv{font-size:16px;font-weight:700;display:block;margin-top:2px}
 .fd-my-meta{display:flex;gap:12px;font-size:11px;color:#999;padding-top:8px;border-top:1px solid #f5f5f5;flex-wrap:wrap}
+.fd-val-row{display:flex;justify-content:space-around;margin-top:8px}
+.fd-val-item{text-align:center}
+.fd-val-label{font-size:11px;color:#999;display:block}
+.fd-val-num{font-size:17px;font-weight:700;display:block;margin-top:2px}
 .fd-periods{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
 .fd-per-btn{padding:4px 12px;border:1px solid #ddd;border-radius:12px;background:#f9f9f9;font-size:12px;cursor:pointer;color:#666}
 .fd-per-btn.on{background:var(--blue);color:#fff;border-color:var(--blue)}

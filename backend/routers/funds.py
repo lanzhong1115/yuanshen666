@@ -11,6 +11,7 @@ from services.fund_data import (
     get_fund_sector_allocation,
 )
 from services.realtime_nav import estimate_fund_nav, estimate_holding_navs
+from services.realtime_valuation import fetch_fund_valuation, fetch_batch_valuations
 from typing import Optional
 
 router = APIRouter()
@@ -142,7 +143,38 @@ async def fund_detail(fund_code: str, include_estimate: bool = False, days: int 
         }
         if include_estimate:
             result["estimate"] = estimate_fund_nav(fund_code)
+        # 实时估值（天天基金 fundgz）
+        try:
+            val = fetch_fund_valuation(fund_code)
+            if val:
+                result["valuation"] = val
+        except Exception:
+            pass
         return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{fund_code}/valuation")
+async def fund_valuation(fund_code: str):
+    """获取基金实时估值（天天基金 fundgz）"""
+    try:
+        data = fetch_fund_valuation(fund_code)
+        if not data:
+            raise HTTPException(status_code=404, detail="无法获取实时估值（可能非交易时段或基金不支持）")
+        return data
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/valuations")
+async def batch_valuations(codes: list[str]):
+    """批量获取基金实时估值"""
+    try:
+        results = fetch_batch_valuations(codes)
+        return {"valuations": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

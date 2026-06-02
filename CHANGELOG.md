@@ -1,5 +1,14 @@
 # 养基助手 更新日志
 
+## v2.5.0 (2026-06-02)
+- 🔴 接入实时估值！对接天天基金 fundgz JSONP API
+- 新增 `backend/services/realtime_valuation.py`：fundgz 解析 + 内存缓存（交易时段30s/非交易5min）
+- 新增 `GET /api/funds/{code}/valuation` 单基金实时估值端点
+- 新增 `POST /api/funds/valuations` 批量估值端点（ThreadPool并发）
+- FundDetail.vue：实时估值卡片（估算净值/涨跌/时间），30s自动刷新
+- Holdings.vue：持仓列表涨跌幅切换为实时估值（gszzl），批量拉取
+- /detail 接口自动附带 valuation 字段
+
 ## v2.4.5 (2026-06-02)
 - 修复交易标记缩放错位（2x→3x）+ 标记随触摸重绘保持
 - 恢复时段切换按钮（一周/15天/30天/半年/一年）
