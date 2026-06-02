@@ -8,7 +8,7 @@ const store = useFundStore()
 const dailyChart = ref(null)
 const monthlyChart = ref(null)
 const pieChart = ref(null)
-const rankTab = ref('profit')
+const showAllVersions = ref(false); const rankTab = ref('profit')
 let chartInsts = {}
 
 // 从 store 缓存读取
@@ -174,6 +174,33 @@ function initPieChart() {
       <AppIcon name="chart" :size="36" color="#ccc" />
       <span>添加持仓后查看收益分析</span>
     </div>
+    <div class="card version-card">
+      <div class="ver-title">版本更新</div>
+      <div class="ver-item"><span class="ver-tag">v2.4.3</span> 06-01 预热缓存0.2s · 页面秒开异步图表</div>
+      <div class="ver-item"><span class="ver-tag">v2.4.4</span> 06-01 速度提升：缓存优先+双图同时渲染</div>
+      <div class="ver-item"><span class="ver-tag">v2.4.2</span> 06-01 Modified Dietz收益算法 · 时间轴修复</div>
+      <div class="ver-item"><span class="ver-tag">v2.4.1</span> 06-01 代码精简约：13+9文件极简架构</div>
+      <template v-if="showAllVersions">
+        <div class="ver-item"><span class="ver-tag">v2.3.4</span> 06-01 修复走势图消失：API路径+HTTP模式修正</div>
+        <div class="ver-item"><span class="ver-tag">v2.3.3</span> 06-01 收益走势自适应：有持仓/无持仓双模式</div>
+        <div class="ver-item"><span class="ver-tag">v2.3.2</span> 06-01 版本更新板块 + 更新日志文件</div>
+        <div class="ver-item"><span class="ver-tag">v2.3.1</span> 06-01 Canvas双走势图 · 复利收益算法 · 时段切换</div>
+        <div class="ver-item"><span class="ver-tag">v2.2.4</span> 06-01 120fps GPU优化 · 代码精简至3200行</div>
+        <div class="ver-item"><span class="ver-tag">v2.2.3</span> 06-01 内存缓存0.2s · 快照秒开 · 详情预加载</div>
+        <div class="ver-item"><span class="ver-tag">v2.2.2</span> 05-31 基金名修复 · 收益曲线≠净值曲线</div>
+        <div class="ver-item"><span class="ver-tag">v2.2.1</span> 05-31 加仓/减仓/定投/删除 · 交易记录</div>
+        <div class="ver-item"><span class="ver-tag">v2.1.3</span> 05-31 当日收益柱状图 · 搜索补全 · SVG图标</div>
+        <div class="ver-item"><span class="ver-tag">v2.1.2</span> 05-31 收益计算修复 · 服务器崩溃保护</div>
+        <div class="ver-item"><span class="ver-tag">v2.1.1</span> 05-31 基金详情页重构 · 涨跌幅实时显示</div>
+        <div class="ver-item"><span class="ver-tag">v2.0.3</span> 05-30 聚合API · 实时估值 · 买卖信号 · 风险诊断</div>
+        <div class="ver-item"><span class="ver-tag">v2.0.2</span> 05-30 ADB隧道 · JSON解析修复 · 双层缓存</div>
+        <div class="ver-item"><span class="ver-tag">v2.0.1</span> 05-30 Android APK打包 · PWA支持</div>
+        <div class="ver-item"><span class="ver-tag">v1.0.0</span> 05-30 三菜单架构 · 持仓管理 · 基金搜索 · 指数行情</div>
+      </template>
+      <div class="ver-toggle" @click="showAllVersions=!showAllVersions">
+        {{ showAllVersions ? '收起' : '查看全部更新 ›' }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -195,4 +222,9 @@ function initPieChart() {
 .rk-name { font-size: 14px; font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rk-code { font-size: 11px; color: #999; }
 .rk-pnl { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+.version-card { opacity: .7; }
+.ver-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #999; }
+.ver-item { font-size: 11px; color: #bbb; padding: 3px 0; }
+.ver-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; background: #f0f0f0; color: #999; font-weight: 600; margin-right: 6px; font-size: 10px; }
+.ver-toggle { text-align: center; padding-top: 8px; font-size: 12px; color: var(--blue); cursor: pointer; }
 </style>

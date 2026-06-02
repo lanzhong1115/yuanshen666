@@ -1,11 +1,11 @@
 <script setup>
 import { computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useStandaloneStore } from './stores/standalone'
+import { useFundStore } from './stores/fund'
 import AppIcon from './components/AppIcon.vue'
-const route=useRoute();const store=useStandaloneStore();let t=null
+const route=useRoute();const store=useFundStore();let t=null
 const showNav=computed(()=>!route.path.startsWith('/fund/'))
-onMounted(async()=>{store.loadFromStorage();await store.sync();t=setInterval(()=>store.refreshMarket(),30000)})
+onMounted(async()=>{store.loadSnapshot();await store.sync();setTimeout(()=>store.preloadDetails(),3000);t=setInterval(()=>store.refreshMarket(),30000)})
 onUnmounted(()=>{if(t)clearInterval(t)})
 </script>
 <template>

@@ -41,13 +41,24 @@ def _cached_indices():
         return [dict(r) for r in rows]
     except: return []
 
-def get_sector_quotes():
+def get_sector_quotes(sort_by="change_pct"):
     try:
         resp = _safe_get("http://push2.eastmoney.com/api/qt/clist/get?pn=1&pz=30&po=1&np=1&fltt=2&invt=2&fid=f3&fs=m:90+t:2&fields=f2,f3,f12,f14")
-        if not resp: return []
+        if not resp: return _cached_sectors()
         data = resp.json()
-        if not data.get("data") or not data["data"].get("diff"): return []
-        return [{"code":i["f12"],"name":i["f14"],"price":round(i.get("f2",0),2),"change_pct":round(i.get("f3",0),2)} for i in data["data"]["diff"]]
+        if not data.get("data") or not data["data"].get("diff"): return _cached_sectors()
+        results = [{"code":i["f12"],"name":i["f14"],"price":round(i.get("f2",0),2),"change_pct":round(i.get("f3",0),2)} for i in data["data"]["diff"]]
+        # 缓存到数据库
+        conn=get_db(); c=conn.cursor()
+        for r in results: c.execute("INSERT OR REPLACE INTO sector_cache(code,name,change_pct,main_inflow) VALUES(?,?,?,0)",[r["code"],r["name"],r["change_pct"]])
+        conn.commit(); conn.close()
+        return results
+    except: return _cached_sectors()
+
+def _cached_sectors():
+    try:
+        conn=get_db(); rows=conn.execute("SELECT * FROM sector_cache").fetchall(); conn.close()
+        return [dict(r) for r in rows]
     except: return []
 
 def get_sector_flow():

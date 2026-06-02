@@ -162,6 +162,73 @@ async def get_trades(holding_id: int):
     conn.close()
     return {"trades": [dict(r) for r in rows]}
 
+@router.get("/{holding_id}/profit-history")
+async def holding_profit_history(holding_id: int, days: int = 30):
+    """获取持仓逐日收益曲线（含加仓/减仓影响）"""
+    conn = get_db()
+    cursor = conn.cursor()
+    h = cursor.execute("SELECT * FROM holdings WHERE id = ?", (holding_id,)).fetchone()
+    if not h:
+        conn.close()
+        raise HTTPException(status_code=404)
+    h = dict(h)
+    # 获取所有交易
+    trades = [dict(r) for r in cursor.execute("SELECT * FROM trades WHERE holding_id=? ORDER BY date ASC", (holding_id,)).fetchall()]
+    conn.close()
+
+    from services.fund_data import get_fund_nav_history
+    from datetime import datetime
+    nav_history = get_fund_nav_history(h["fund_code"], days=days)
+
+    if not nav_history:
+        return {"dates": [], "profits": [], "trades": []}
+
+    # Step 1: 过滤掉超出NAV范围的交易，按日期排序
+    nav_start = nav_history[0]["date"]
+    nav_end = nav_history[-1]["date"]
+    valid_trades = [t for t in trades if nav_start <= t["date"] <= nav_end]
+    trade_dates = {t["date"]: t for t in valid_trades}
+
+    # Step 2: 计算子周期
+    periods = []
+    last_cut = 0
+    for i, nav in enumerate(nav_history):
+        t = trade_dates.get(nav["date"])
+        if t and i > last_cut:
+            periods.append({"start": last_cut, "end": i, "trade": t})
+            last_cut = i + 1
+    if last_cut < len(nav_history):
+        periods.append({"start": last_cut, "end": len(nav_history) - 1, "trade": None})
+
+    # Step 3: 逐周期计算 Modified Dietz 并链式累乘
+    shares = h["buy_shares"] if h["buy_shares"] > 0 else (h["buy_amount"] / nav_history[0]["nav"] if nav_history[0]["nav"] > 0 else 0)
+    invested = h["buy_amount"]
+    dates, profits = [], []
+    period_idx = 0
+
+    for i, nav in enumerate(nav_history):
+        date = nav["date"]
+        if period_idx < len(periods) and i == periods[period_idx]["start"] and i > 0:
+            t = periods[period_idx]["trade"]
+            if t and t["type"] == "buy":
+                shares += t["shares"] if t["shares"] > 0 else (t["amount"] / nav["nav"] if nav["nav"] > 0 else 0)
+                invested += t["amount"]
+            elif t and t["type"] == "sell":
+                if shares > 0:
+                    ratio = t["shares"] / shares if t["shares"] > 0 else (t["amount"] / (shares * nav["nav"]) if nav["nav"] > 0 else 0)
+                    invested -= invested * ratio
+                    shares -= t["shares"]
+                if invested < 0: invested = 0
+                if shares < 0: shares = 0
+            period_idx += 1
+
+        value = shares * nav["nav"]
+        profit = round(value - invested, 2) if invested > 0 else 0
+        dates.append(date)
+        profits.append(profit)
+
+    return {"dates": dates, "profits": profits, "invested": round(invested, 2), "shares": round(shares, 4), "trades": [{"date":t["date"],"type":t["type"],"amount":t["amount"]} for t in valid_trades]}
+
 
 @router.get("/summary")
 async def holdings_summary(realtime: bool = Query(default=False, description="是否使用实时估值计算")):
