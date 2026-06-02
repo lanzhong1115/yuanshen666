@@ -1,4 +1,7 @@
-const BASE = 'http://localhost:8765/api'
+// APK 模式检测：Capacitor 原生环境用局域网IP，浏览器开发用 localhost
+const isNative = typeof window !== 'undefined' && !!(window.Capacitor || window.androidBridge)
+const API_HOST = isNative ? '172.28.197.79' : 'localhost'
+const BASE = 'http://' + API_HOST + ':8765/api'
 async function request(url, options = {}) {
   const res = await fetch(BASE + url, { headers: { 'Content-Type': 'application/json', ...options.headers }, ...options })
   if (!res.ok) { const err = await res.json().catch(() => ({ detail: '请求失败' })); throw new Error(err.detail || 'HTTP ' + res.status) }
