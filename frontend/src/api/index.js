@@ -1,5 +1,5 @@
-// 自动判断环境：本地开发 → localhost，线上/APK → 云服务器
-const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+// 自动判断: localhost/ADB隧道 → 本地, GitHub Pages → 云服务器
+const isLocal = !(typeof window !== 'undefined' && window.location.hostname.includes('github.io'))
 const BASE = isLocal ? 'http://localhost:8765/api' : 'http://139.155.150.75:8765/api'
 async function request(url, options = {}) {
   const res = await fetch(BASE + url, { headers: { 'Content-Type': 'application/json', ...options.headers }, ...options })
