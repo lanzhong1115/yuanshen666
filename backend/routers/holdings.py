@@ -6,6 +6,7 @@ from typing import Optional
 from database import get_db
 from services.calculator import calculate_holding_profit
 from services.realtime_nav import estimate_holding_navs
+from services.realtime_valuation import fetch_batch_valuations
 
 router = APIRouter()
 
@@ -35,21 +36,36 @@ class HoldingUpdate(BaseModel):
 
 @router.get("/")
 async def list_holdings():
-    """获取所有持仓（含实时盈亏计算）"""
+    """获取所有持仓（含实时估值）"""
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM holdings ORDER BY created_at DESC")
     rows = cursor.fetchall()
     holdings = []
+    codes = []
     for row in rows:
         h = dict(row)
-        # 计算盈亏
         profit_info = calculate_holding_profit(
             h["fund_code"], h["buy_shares"], h["buy_amount"], h.get("buy_nav", 0), h.get("buy_date", "")
         )
         h.update(profit_info)
         holdings.append(h)
+        codes.append(h["fund_code"])
     conn.close()
+
+    # 批量获取实时估值，注入到 daily_return
+    if codes:
+        try:
+            valuations = fetch_batch_valuations(codes)
+            for h in holdings:
+                val = valuations.get(h["fund_code"])
+                if val and val.get("gszzl") is not None:
+                    h["daily_return"] = round(val["gszzl"], 2)
+                    h["valuation_time"] = val.get("gztime", "")
+                    h["estimated_nav"] = val.get("gsz")
+        except Exception:
+            pass
+
     return {"holdings": holdings, "count": len(holdings)}
 
 

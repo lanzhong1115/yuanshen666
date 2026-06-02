@@ -9,6 +9,7 @@ from database import get_db
 from services.fund_data import _extract_json_array
 from services.market_data import get_index_quotes, get_sector_quotes
 from services.advisor import diagnose_portfolio, recommend_allocation, generate_trade_signals, assess_risk
+from services.realtime_valuation import fetch_batch_valuations
 import httpx
 
 router = APIRouter()
@@ -173,6 +174,13 @@ async def sync_all():
                 print(f"[sync] parallel fetch failed {code}: {e}")
                 fund_nav_cache[code] = []
 
+    # === 步骤1.5: 拉取实时估值（不阻塞） ===
+    valuations = {}
+    try:
+        valuations = fetch_batch_valuations(unique_codes)
+    except Exception:
+        pass
+
     # === 步骤2: 基于缓存的NAV计算所有持仓数据 ===
     holdings_data = []
     total_cost = 0
@@ -211,6 +219,13 @@ async def sync_all():
         total_cost += h["buy_amount"]
         total_value += current_value
 
+        # 实时估值覆盖日涨跌
+        val = valuations.get(code)
+        gztime = ""
+        if val and val.get("gszzl") is not None:
+            daily_return = val["gszzl"]
+            gztime = val.get("gztime", "")
+
         holdings_data.append({
             "id": h["id"],
             "fund_code": code,
@@ -226,6 +241,8 @@ async def sync_all():
             "profit_pct": round(profit_pct, 2),
             "daily_return": round(daily_return, 2),
             "nav_date": nav_date,
+            "valuation_time": gztime,
+            "estimated_nav": val.get("gsz") if val else None,
         })
 
         # 累积每日总市值
